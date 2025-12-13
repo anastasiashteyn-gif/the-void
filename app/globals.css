@@ -1,0 +1,46 @@
+html, body { height: 100%; margin: 0; padding: 0; }
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  background: #060608;
+  color: #f4f0e8;
+}
+* { box-sizing: border-box; }
+.bg {
+  position: fixed; inset: 0;
+  background-image: url('/ardra.webp');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: -2;
+}
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.52); z-index: -1; }
+.wrap { min-height: 100%; display: flex; align-items: center; justify-content: center; padding: 28px 18px; }
+.card {
+  width: min(560px, 100%);
+  border: 1px solid rgba(244,240,232,0.18);
+  border-radius: 18px;
+  padding: 22px 18px;
+  backdrop-filter: blur(6px);
+  background: rgba(6,6,8,0.22);
+}
+.brand { text-align: center; margin-bottom: 18px; }
+.brand h1 { margin: 0; letter-spacing: 0.22em; font-size: 22px; font-weight: 600; }
+.brand p { margin: 10px 0 0; opacity: 0.9; font-size: 14px; }
+.section { margin-top: 18px; padding-top: 16px; border-top: 1px solid rgba(244,240,232,0.14); }
+.label { font-size: 12px; letter-spacing: 0.18em; opacity: 0.86; margin: 0 0 10px; }
+.row { display: grid; gap: 10px; margin-top: 10px; }
+input, select, button {
+  width: 100%;
+  padding: 12px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(244,240,232,0.22);
+  background: rgba(6,6,8,0.30);
+  color: #f4f0e8;
+  outline: none;
+  font-size: 14px;
+}
+input::placeholder { color: rgba(244,240,232,0.52); }
+button { cursor: pointer; background: rgba(244,240,232,0.10); }
+button:disabled { cursor: not-allowed; opacity: 0.55; }
+.small { margin-top: 10px; font-size: 12px; opacity: 0.86; word-break: break-all; }
+.pill { display: inline-block; border: 1px solid rgba(244,240,232,0.18); padding: 6px 10px; border-radius: 999px; font-size: 12px; opacity: 0.9; }
