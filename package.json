@@ -9,7 +9,7 @@
     "start": "next start"
   },
   "dependencies": {
-    "@ishubhamx/panchangam-js": "^1.1.5",
+    "@ishubhamx/panchangam-js": "^1.0.3",
     "ics": "^2.44.0",
     "luxon": "^3.5.0",
     "next": "14.2.18",
