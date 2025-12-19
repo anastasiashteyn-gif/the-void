@@ -2,7 +2,6 @@ export const runtime = "nodejs";
 
 export async function POST(req) {
   try {
-    // Safely parse request body
     let body = {};
     try {
       body = await req.json();
@@ -10,7 +9,6 @@ export async function POST(req) {
       body = {};
     }
 
-    // Accept both email or email_address from frontend
     const rawEmail = body?.email_address || body?.email;
     const email =
       typeof rawEmail === "string"
@@ -27,43 +25,35 @@ export async function POST(req) {
     const apiKey = process.env.BUTTONDOWN_API_KEY;
     if (!apiKey) {
       return new Response(
-        JSON.stringify({ error: "Missing Buttondown API key" }),
+        JSON.stringify({ error: "Missing BUTTONDOWN_API_KEY" }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // Get IP address (recommended by Buttondown, optional but good)
     const ip =
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
       req.headers.get("x-real-ip") ||
       undefined;
 
-    // Send to Buttondown
-    const response = await fetch("https://api.buttondown.email/v1/subscribers", {
+    const r = await fetch("https://api.buttondown.email/v1/subscribers", {
       method: "POST",
       headers: {
         Authorization: `Token ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        email_address: email, // IMPORTANT: Buttondown expects this exact field
+        email_address: email, // ✅ THIS IS THE KEY FIX
         tags: ["ardra"],
         ...(ip ? { ip_address: ip } : {}),
       }),
     });
 
-    const text = await response.text();
+    const text = await r.text();
 
-    if (!response.ok) {
+    if (!r.ok) {
       return new Response(
-        JSON.stringify({
-          error: "Buttondown rejected request",
-          details: text,
-        }),
-        {
-          status: response.status,
-          headers: { "Content-Type": "application/json" },
-        }
+        JSON.stringify({ error: "Buttondown rejected request", details: text }),
+        { status: r.status, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -73,9 +63,8 @@ export async function POST(req) {
     );
   } catch (err) {
     return new Response(
-      JSON.stringify({
-        error: "Server error",
-        details: String(err),
-      }),
+      JSON.stringify({ error: "Server error", details: String(err) }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
+  }
+}
