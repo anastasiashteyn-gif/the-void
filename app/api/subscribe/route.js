@@ -2,7 +2,7 @@ export const runtime = "nodejs";
 
 export async function POST(req) {
   try {
-    // Safely read JSON body
+    // Safely parse request body
     let body = {};
     try {
       body = await req.json();
@@ -10,9 +10,8 @@ export async function POST(req) {
       body = {};
     }
 
-    // Force email into a clean string
+    // Accept both email or email_address from frontend
     const rawEmail = body?.email_address || body?.email;
-
     const email =
       typeof rawEmail === "string"
         ? rawEmail.trim().toLowerCase()
@@ -20,7 +19,7 @@ export async function POST(req) {
 
     if (!email) {
       return new Response(
-        JSON.stringify({ error: "Email missing or invalid (frontend is not sending it)" }),
+        JSON.stringify({ error: "Email missing or invalid" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -28,47 +27,55 @@ export async function POST(req) {
     const apiKey = process.env.BUTTONDOWN_API_KEY;
     if (!apiKey) {
       return new Response(
-        JSON.stringify({ error: "Missing BUTTONDOWN_API_KEY in Vercel env vars" }),
+        JSON.stringify({ error: "Missing Buttondown API key" }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // Optional: include IP address (Buttondown recommends it)
+    // Get IP address (recommended by Buttondown, optional but good)
     const ip =
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
       req.headers.get("x-real-ip") ||
       undefined;
 
-    const r = await fetch("https://api.buttondown.email/v1/subscribers", {
+    // Send to Buttondown
+    const response = await fetch("https://api.buttondown.email/v1/subscribers", {
       method: "POST",
       headers: {
         Authorization: `Token ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        email,
+        email_address: email, // IMPORTANT: Buttondown expects this exact field
         tags: ["ardra"],
         ...(ip ? { ip_address: ip } : {}),
       }),
     });
 
-    const text = await r.text();
+    const text = await response.text();
 
-    if (!r.ok) {
+    if (!response.ok) {
       return new Response(
-        JSON.stringify({ error: "Buttondown rejected request", details: text }),
-        { status: r.status, headers: { "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: "Buttondown rejected request",
+          details: text,
+        }),
+        {
+          status: response.status,
+          headers: { "Content-Type": "application/json" },
+        }
       );
     }
 
-    return new Response(JSON.stringify({ ok: true }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ ok: true }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
   } catch (err) {
     return new Response(
-      JSON.stringify({ error: "Server error", details: String(err) }),
+      JSON.stringify({
+        error: "Server error",
+        details: String(err),
+      }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
-  }
-}
