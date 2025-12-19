@@ -11,7 +11,8 @@ export async function POST(req) {
     }
 
     // Force email into a clean string
-    const rawEmail = body?.email;
+    const rawEmail = body?.email_address || body?.email;
+
     const email =
       typeof rawEmail === "string"
         ? rawEmail.trim().toLowerCase()
