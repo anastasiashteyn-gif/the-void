@@ -9,7 +9,11 @@ function calendarOptions() {
     { id: "uk-london", label: "UK — London", href: "/calendars/panchang-2026-uk-london.ics" },
     { id: "usa-east-nyc", label: "USA East — New York", href: "/calendars/panchang-2026-america-new-york.ics" },
     { id: "usa-west-la", label: "USA West — Los Angeles", href: "/calendars/panchang-2026-america-los-angeles.ics" },
-    { id: "india-delhi", label: "India — Delhi (IST)", href: "/calendars/panchang-2026-asia-kolkata.ics" },
+    { id: "india-delhi", label: "India — Kolkata (IST)", href: "/calendars/panchang-2026-asia-kolkata.ics" },
+     { id: "india-delhi", label: "Europe — Moscow (IST)", href: "/calendars/panchang-2026-europe-moscow.ics" },
+     { id: "india-delhi", label: "Asia — Yekaterinburg (IST)", href: "/calendars/panchang-2026-asia-yekaterinburg.ics" },
+     { id: "india-delhi", label: "Asia — Tokyo (IST)", href: "/calendars/panchang-2026-asia-tokyo.ics" },
+     { id: "india-delhi", label: "Asia — Bali (IST)", href: "/calendars/panchang-2026-asia-bali.ics" },
   ];
 }
 
