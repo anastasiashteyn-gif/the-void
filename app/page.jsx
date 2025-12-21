@@ -2,24 +2,24 @@
 
 import { useMemo, useState } from "react";
 
-function yearOptions() {
-  const now = new Date().getFullYear();
-  const set = new Set([2026, now, now + 1, now - 1]);
-  return Array.from(set).sort((a,b) => a-b);
+function calendarOptions() {
+  return [
+    { id: "europe-berlin", label: "Europe — Berlin", href: "/calendars/panchang-2026-europe-berlin.ics" },
+    { id: "europe-madrid", label: "Europe — Madrid", href: "/calendars/panchang-2026-europe-madrid.ics" },
+    { id: "uk-london", label: "UK — London", href: "/calendars/panchang-2026-uk-london.ics" },
+    { id: "usa-east-nyc", label: "USA East — New York", href: "/calendars/panchang-2026-america-new-york.ics" },
+    { id: "usa-west-la", label: "USA West — Los Angeles", href: "/calendars/panchang-2026-america-los-angeles.ics" },
+    { id: "india-delhi", label: "India — Delhi (IST)", href: "/calendars/panchang-2026-asia-kolkata.ics" },
+  ];
 }
 
 export default function Home() {
-  const years = useMemo(() => yearOptions(), []);
+  const calendars = useMemo(() => calendarOptions(), []);
   const [email, setEmail] = useState("");
   const [gateLoading, setGateLoading] = useState(false);
   const [gateOpen, setGateOpen] = useState(false);
   const [gateMsg, setGateMsg] = useState("");
-
-  const [city, setCity] = useState("Berlin");
-  const [country, setCountry] = useState("Germany");
-  const [year, setYear] = useState(2026);
   const [feedUrl, setFeedUrl] = useState("");
-  const [genMsg, setGenMsg] = useState("");
 
   async function openGate(e) {
     e.preventDefault();
@@ -40,24 +40,6 @@ export default function Home() {
     } finally {
       setGateLoading(false);
     }
-  }
-
-  function generateLink(e) {
-    e.preventDefault();
-    setGenMsg("");
-    const u = new URL(window.location.origin + "/api/panchang.ics");
-    u.searchParams.set("city", city.trim());
-    u.searchParams.set("country", country.trim());
-    u.searchParams.set("year", String(year));
-    setFeedUrl(u.toString());
-    setGenMsg("access granted");
-  }
-
-  async function copyLink() {
-    if (!feedUrl) return;
-    await navigator.clipboard.writeText(feedUrl);
-    setGenMsg("copied");
-    setTimeout(() => setGenMsg("access granted"), 1200);
   }
 
   return (
@@ -88,53 +70,42 @@ export default function Home() {
         <div className="section" style={{ opacity: gateOpen ? 1 : 0.38 }}>
           <p className="label">Timekeeping. Google Cal Layer</p>
 
-          <form className="row" onSubmit={generateLink}>
-            <input
-              type="text"
-              placeholder="City"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              disabled={!gateOpen}
-              required
-            />
-            <input
-              type="text"
-              placeholder="Country"
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
-              disabled={!gateOpen}
-              required
-            />
+          <div className="row">
             <select
-              value={year}
-              onChange={(e) => setYear(Number(e.target.value))}
               disabled={!gateOpen}
+              value={feedUrl}
+              onChange={(e) => setFeedUrl(e.target.value)}
             >
-              {years.map((y) => <option key={y} value={y}>{y}</option>)}
+              <option value="">Select your calendar</option>
+              {calendars.map((c) => (
+                <option key={c.id} value={c.href}>
+                  {c.label}
+                </option>
+              ))}
             </select>
-
-            <button type="submit" disabled={!gateOpen}>
-              Generate Google Calendar URL
-            </button>
 
             {feedUrl ? (
               <div className="small">
-                <div style={{ marginBottom: 8 }}><span className="pill">URL</span></div>
+                <div style={{ marginBottom: 8 }}>
+                  <span className="pill">Calendar file</span>
+                </div>
+
                 <div>{feedUrl}</div>
-                <div style={{ marginTop: 10, display: "flex", gap: 10 }}>
-                  <button type="button" onClick={copyLink} disabled={!gateOpen}>Copy</button>
-                  <a href={feedUrl} style={{ width: "100%" }} target="_blank" rel="noreferrer">
-                    <button type="button" disabled={!gateOpen}>Open</button>
+
+                <div style={{ marginTop: 10 }}>
+                  <a href={feedUrl} download style={{ width: "100%", display: "block" }}>
+                    <button type="button" disabled={!gateOpen}>
+                      Download
+                    </button>
                   </a>
                 </div>
+
                 <div style={{ marginTop: 10, opacity: 0.86 }}>
-                  Google Calendar → Add by URL → paste.
+                  Google Calendar → Settings → Import &amp; Export → Import (.ics)
                 </div>
               </div>
             ) : null}
-
-            {genMsg ? <div className="small">{genMsg}</div> : null}
-          </form>
+          </div>
         </div>
       </section>
     </main>
