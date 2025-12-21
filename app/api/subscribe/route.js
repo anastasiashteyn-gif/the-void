@@ -1,5 +1,24 @@
 export const runtime = "nodejs";
 
+function json(status, payload) {
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: { "Content-Type": "application/json; charset=utf-8" },
+  });
+}
+
+function looksAlreadySubscribed(text) {
+  const t = String(text || "").toLowerCase();
+  return (
+    t.includes("already subscribed") ||
+    t.includes("already a subscriber") ||
+    t.includes("already exists") ||
+    t.includes("has already been taken") ||
+    t.includes("subscriber with this email") ||
+    t.includes("email_address") && t.includes("already") // extra safety
+  );
+}
+
 export async function POST(req) {
   try {
     let body = {};
@@ -16,18 +35,12 @@ export async function POST(req) {
         : "";
 
     if (!email) {
-      return new Response(
-        JSON.stringify({ error: "Email missing or invalid" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
+      return json(400, { error: "Email missing or invalid" });
     }
 
     const apiKey = process.env.BUTTONDOWN_API_KEY;
     if (!apiKey) {
-      return new Response(
-        JSON.stringify({ error: "Missing BUTTONDOWN_API_KEY" }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
-      );
+      return json(500, { error: "Missing BUTTONDOWN_API_KEY" });
     }
 
     const ip =
@@ -42,29 +55,30 @@ export async function POST(req) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        email_address: email, // ✅ THIS IS THE KEY FIX
+        email_address: email,
         tags: ["ardra"],
         ...(ip ? { ip_address: ip } : {}),
       }),
     });
 
-    const text = await r.text();
+    const text = await r.text().catch(() => "");
 
-    if (!r.ok) {
-      return new Response(
-        JSON.stringify({ error: "Buttondown rejected request", details: text }),
-        { status: r.status, headers: { "Content-Type": "application/json" } }
-      );
+    // ✅ SUCCESS: newly subscribed
+    if (r.ok) {
+      return json(200, { ok: true, status: "subscribed" });
     }
 
-    return new Response(
-      JSON.stringify({ ok: true }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
-    );
+    // ✅ ALSO SUCCESS: already subscribed (grant access again)
+    if (looksAlreadySubscribed(text)) {
+      return json(200, { ok: true, status: "already_subscribed" });
+    }
+
+    // ❌ REAL ERROR (show a friendly message, keep details for debugging)
+    return json(r.status || 400, {
+      error: "Buttondown rejected request",
+      details: text,
+    });
   } catch (err) {
-    return new Response(
-      JSON.stringify({ error: "Server error", details: String(err) }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
+    return json(500, { error: "Server error", details: String(err) });
   }
 }
